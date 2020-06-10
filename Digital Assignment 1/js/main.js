@@ -65,15 +65,6 @@ window.onload = function() {
     function create ()
     {
 		this.add.image(400,300,'city');
-		/*platform = this.physics.add.staticGroup();//create group of platforms (copied from phaser tutorial)
-		platform.create(50, 250, 'ledge');//start ledge
-		platform.create(175, 320, 'ledge');
-		platform.create(300, 400, 'ledge');
-		platform.create(450, 400, 'ledge');
-		platform.create(575, 310, 'ledge');
-		platform.create(750, 220, 'ledge');//end ledge
-		this.add.image(775, 150, 'arrow');
-		*/
 		
 		//load map
 		map = this.make.tilemap({key: 'map'});
@@ -127,14 +118,14 @@ window.onload = function() {
 		enemy = this.physics.add.group({
         key: 'drone',
 		allowGravity: false,
-        repeat: 6,
+        repeat: 25,
         setXY: { x: 120, y: 0, stepX: 100 }
 		});
 		
 		this.physics.add.overlap(player, enemy, hit, null, this);
 	}
 
-    function update ()
+    function update()
     {	//copied from phaser tutorial
 		//console.log(player.y); //debug
 		if(wasHit && player.y >= 227) {//remove explosion after player has respawned
@@ -222,10 +213,9 @@ window.onload = function() {
 		// make the camera follow the player
 		this.cameras.main.startFollow(player);
     
-		// set background color, so the sky is not black    
-		//this.cameras.main.setBackgroundColor('#ccccff'); 
     }
 	
+	//collision function
 	function hit(){
 		explode = this.add.image(player.x,player.y,'b00m');
 		wasHit = true;
