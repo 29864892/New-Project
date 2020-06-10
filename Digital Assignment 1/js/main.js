@@ -42,10 +42,13 @@ window.onload = function() {
 	var firstmove = true;//check for when to start sound
 	var lives = 3;//player lives 0 = gameover
 	var lifeText;//text displaying lives
+	var scoreText;//text for score (# of items picked up)
 	var music;//in game music
 	var enemy;//enemy object
 	var explode;//explosion animation
 	var wasHit = false;
+	var score = 0;
+	var item;
 	
     function preload ()
     {
@@ -57,6 +60,7 @@ window.onload = function() {
 		this.load.image('arrow', 'assets/arrow.png');//load in arrow(made by me)
 		this.load.audio('boom', 'assets/Explosion.mp3');//load in explosion sound https://www.freesoundeffects.com/free-sounds/explosion-10070/
 		this.load.image('b00m', 'assets/b00m.png');//https://www.pinclipart.com/pindetail/iToRRR_download-clip-art-comic-explosion-transparent-clipart-comic/
+		this.load.image('item','assets/item.png');
 		//tilemap preload
 		this.load.tilemapTiledJSON('map', 'assets/levelOne.json');
 		this.load.spritesheet('tiles', 'assets/tileimage.png', {frameWidth: 50, frameHeight: 50});
@@ -75,11 +79,11 @@ window.onload = function() {
 		var cityTiles = map.addTilesetImage('tileimage', 'tiles');
 		//create the background of the city
 		this.cityImg = map.createDynamicLayer('City', cityTiles, 0, 0); 
-		
+		//create ground 
 		this.groundLayer = map.createDynamicLayer('ground', groundTiles, 0, 0);
 		// the player will collide with this layer
 		this.groundLayer.setCollisionByExclusion([-1]);
-		
+		//world bounds
 		this.physics.world.bounds.width = this.groundLayer.width;
 		this.physics.world.bounds.height = this.groundLayer.height;
 		
@@ -113,16 +117,25 @@ window.onload = function() {
 		//copied from phaser tutorial
 		cursor = this.input.keyboard.createCursorKeys();//create input check
 		lifeText = this.add.text(16, 16, 'Lives: 3', { fontSize: '20px', fill: '#001' });//create text for lives left
-		
+		scoreText = this.add.text(146, 16, 'Score: 0', { fontSize: '20px', fill: '#001' });//create text for lives left
 		//create enemy objects
 		enemy = this.physics.add.group({
         key: 'drone',
 		allowGravity: false,
-        repeat: 25,
+        repeat: 48,
         setXY: { x: 120, y: 0, stepX: 100 }
 		});
-		
+		//set up interaction with player
 		this.physics.add.overlap(player, enemy, hit, null, this);
+		
+		//create item objects
+		item = this.physics.add.group({
+			key: 'item',
+			allowGravity: false,
+			repeat: 25,
+			setXY: {x: 120, y: 450, stepX: 200 }
+		});
+		this.physics.add.overlap(player, item, pickUp, null, this);
 	}
 
     function update()
@@ -132,7 +145,8 @@ window.onload = function() {
 			explode.destroy();//remove object
 			wasHit = false;//sets to false to avoid errors
 		}
-
+		
+		//scoreText.x = player.x - 300
 		//console.log(player.x + ',' + player.y)
 		if(player.y == 199 && player.x >= 768){
 		
@@ -212,20 +226,30 @@ window.onload = function() {
 		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 		// make the camera follow the player
 		this.cameras.main.startFollow(player);
-    
+		console.log(player.x);
+		//score and life text follow player
+		if(player.x > 400 && player.x < 4598){
+			lifeText.x = player.x - 390;
+			scoreText.x = player.x - 260;
+		}
     }
 	
-	//collision function
+	//collision functions
 	function hit(){
 		explode = this.add.image(player.x,player.y,'b00m');
 		wasHit = true;
 		//this.destroy(player.x,player.y,'b00m');
 		this.sound.play('boom');
-		player.setX(60);//reset player position
-		player.setY(0);
-		lives--;//decrement lives and update text
+		//player.setX(60);//reset player position
+		//player.setY(0);
+		//lives--;//decrement lives and update text
 		lifeText.setText('Lives: ' + lives);
 	
 	}
-
+	
+	function pickUp(player, item){
+		item.destroy();
+		score++;
+		scoreText.setText('Score: ' + score);
+	}
 };
