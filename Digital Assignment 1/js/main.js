@@ -29,6 +29,10 @@ window.onload = function() {
 			disableWebAudio: true
 		}
     };
+	//tile vars
+	var map;
+	var ground;
+	var bg;
 	
 	var gameOver = false;//ends game when false
 	var cursor;//input
@@ -53,12 +57,15 @@ window.onload = function() {
 		this.load.image('arrow', 'assets/arrow.png');//load in arrow(made by me)
 		this.load.audio('boom', 'assets/Explosion.mp3');//load in explosion sound https://www.freesoundeffects.com/free-sounds/explosion-10070/
 		this.load.image('b00m', 'assets/b00m.png');//https://www.pinclipart.com/pindetail/iToRRR_download-clip-art-comic-explosion-transparent-clipart-comic/
+		//tilemap preload
+		this.load.tilemapTiledJSON('map', 'assets/levelOne.json');
+		this.load.spritesheet('tiles', 'assets/tileimage.png', {frameWidth: 50, frameHeight: 50});
     }
 
     function create ()
     {
 		this.add.image(400,300,'city');
-		platform = this.physics.add.staticGroup();//create group of platforms (copied from phaser tutorial)
+		/*platform = this.physics.add.staticGroup();//create group of platforms (copied from phaser tutorial)
 		platform.create(50, 250, 'ledge');//start ledge
 		platform.create(175, 320, 'ledge');
 		platform.create(300, 400, 'ledge');
@@ -66,14 +73,31 @@ window.onload = function() {
 		platform.create(575, 310, 'ledge');
 		platform.create(750, 220, 'ledge');//end ledge
 		this.add.image(775, 150, 'arrow');
-	
-		//  Player physics properties. Give the little guy a slight bounce. (copied from phaser tutorial)
+		*/
 		
+		//load map
+		map = this.make.tilemap({key: 'map'});
+		//ground tiles
+		
+		//tileset = map.addTilesetImage('tilesetNameInTiled', 'tilesetNameInPhaser');
+		var groundTiles = map.addTilesetImage('tileimage','tiles');
+		var cityTiles = map.addTilesetImage('tileimage', 'tiles');
+		//create the background of the city
+		this.cityImg = map.createDynamicLayer('City', cityTiles, 0, 0); 
+		
+		this.groundLayer = map.createDynamicLayer('ground', groundTiles, 0, 0);
+		// the player will collide with this layer
+		this.groundLayer.setCollisionByExclusion([-1]);
+		
+		this.physics.world.bounds.width = this.groundLayer.width;
+		this.physics.world.bounds.height = this.groundLayer.height;
 		
 		player = this.physics.add.sprite(60, 0, 'mydude');//create player copied from phaser tutorial)
 		player.setBounce(0.2);
 		player.setCollideWorldBounds(true);//wont fall out of screen
-		this.physics.add.collider(player, platform);//player will not fall through platforms
+		//collide with the ground
+		this.physics.add.collider(this.groundLayer, player);
+		//this.physics.add.collider(player, platform);//player will not fall through platforms
 		
 		//copied from phaser tutorial
 		this.anims.create({//animation for moving left
@@ -107,7 +131,7 @@ window.onload = function() {
         setXY: { x: 120, y: 0, stepX: 100 }
 		});
 		
-		this.physics.add.overlap(player, enemy, hit, null, this)
+		this.physics.add.overlap(player, enemy, hit, null, this);
 	}
 
     function update ()
@@ -124,22 +148,22 @@ window.onload = function() {
 		
 		
 		}
-		console.log(player.x + ',' + player.y);
+		//console.log(player.x + ',' + player.y);
 		if((player.y <= 199 || player.y == 207) && player.x >= 768){//207 because the character goes through the platform in the github version
 			this.add.text(175, 200, 'YOU WIN!', {fontSize: '80px', fill: '#000'});//notify player
 			gameOver = true;
 			return;
 		}
 	
-		if(player.y >= 560){//check if player has fallen off the platforms
+		/*if(player.y >= 560){//check if player has fallen off the platforms
 			player.setX(60);//reset player position
 			player.setY(0);
 			lives--;//decrement lives and update text
 			lifeText.setText('Lives: ' + lives);
-		}
+		}*/
 		if(lives == 0){
 			gameOver = true;
-			music.stop();//stop music from playing
+			//music.stop();//stop music from playing
 			lifeText.setText('GAME OVER');
 			this.add.text(175, 200, 'GAME OVER', {fontSize: '80px', fill: '#000'});//print text to alert player
 			player.destroy();//remove object
@@ -175,11 +199,11 @@ window.onload = function() {
 			player.setVelocityX(0);
 
 		}
-		if (cursor.up.isDown && player.body.touching.down)
+		if (cursor.up.isDown && player.body.onFloor())
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
-				music = this.sound.add('music');
-				music.play();
+				//music = this.sound.add('music');
+				//music.play();
 				firstmove = false;
 			}
 			player.setVelocityY(-330);
@@ -193,7 +217,13 @@ window.onload = function() {
 				child.setVelocityY(Phaser.Math.FloatBetween(-100, -800));
 			}
 		});
-		
+		// set bounds so the camera won't go outside the game world
+		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+		// make the camera follow the player
+		this.cameras.main.startFollow(player);
+    
+		// set background color, so the sky is not black    
+		//this.cameras.main.setBackgroundColor('#ccccff'); 
     }
 	
 	function hit(){
