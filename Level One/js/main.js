@@ -236,7 +236,7 @@ window.onload = function() {
 			if(child.y <= 30){//inital movement and movement from top
 				child.setVelocityY(Phaser.Math.FloatBetween(100, 800));
 			}
-			if(child.y >= 550){//movement from bottom
+			if(child.y >= 500){//movement from bottom
 				child.setVelocityY(Phaser.Math.FloatBetween(-100, -800));
 			}
 		});
