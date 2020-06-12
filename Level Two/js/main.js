@@ -49,21 +49,25 @@ window.onload = function() {
 	var wasHit = false;
 	var score = 0;
 	var item;
+	var timer;
+	var timeText;
+	var currentTime;
+	var invincible = false;
+	var invincibleTimer;
 	
     function preload ()
     {
-		this.load.image('city', 'assets/city.png');//load background
-		this.load.image('ledge', 'assets/platf0rm.png');//load platform
+		
 		this.load.spritesheet('mydude', 'assets/mydude.png', { frameWidth: 32, frameHeight: 48 });//load in character sprite (sprite made by me)
 		this.load.audio('music', 'assets/Six_Umbrellas_09_Longest_Summer.mp3');//https://freemusicarchive.org/music/Six_Umbrellas
-		this.load.image('drone', 'assets/policedrone.png');// load enemy image (made by me)
+		this.load.image('boss', 'assets/boss.png');// load enemy image (made by me)
 		this.load.image('arrow', 'assets/arrow.png');//load in arrow(made by me)
 		this.load.audio('boom', 'assets/Explosion.mp3');//load in explosion sound https://www.freesoundeffects.com/free-sounds/explosion-10070/
 		this.load.image('b00m', 'assets/b00m.png');//https://www.pinclipart.com/pindetail/iToRRR_download-clip-art-comic-explosion-transparent-clipart-comic/
 		this.load.image('item','assets/item.png');
 		//tilemap preload
-		this.load.tilemapTiledJSON('map', 'assets/levelOne.json');
-		this.load.spritesheet('tiles', 'assets/tileimage.png', {frameWidth: 50, frameHeight: 50});
+		this.load.tilemapTiledJSON('map', 'assets/levelTwo.json');
+		this.load.spritesheet('tiles', 'assets/LevelTwo.png', {frameWidth: 50, frameHeight: 50});
     }
 
     function create ()
@@ -75,10 +79,10 @@ window.onload = function() {
 		//ground tiles
 		
 		//tileset = map.addTilesetImage('tilesetNameInTiled', 'tilesetNameInPhaser');
-		var groundTiles = map.addTilesetImage('tileimage','tiles');
-		var cityTiles = map.addTilesetImage('tileimage', 'tiles');
+		var groundTiles = map.addTilesetImage('levelTwo','tiles');
+		var cityTiles = map.addTilesetImage('levelTwo', 'tiles');
 		//create the background of the city
-		this.cityImg = map.createDynamicLayer('City', cityTiles, 0, 0); 
+		this.cityImg = map.createDynamicLayer('Tile Layer 1', cityTiles, 0, 0); 
 		//create ground 
 		this.groundLayer = map.createDynamicLayer('ground', groundTiles, 0, 0);
 		// the player will collide with this layer
@@ -87,7 +91,7 @@ window.onload = function() {
 		this.physics.world.bounds.width = this.groundLayer.width;
 		this.physics.world.bounds.height = this.groundLayer.height;
 		
-		player = this.physics.add.sprite(60, 0, 'mydude');//create player copied from phaser tutorial)
+		player = this.physics.add.sprite(60, 527, 'mydude');//create player copied from phaser tutorial)
 		player.setBounce(0.2);
 		player.setCollideWorldBounds(true);//wont fall out of screen
 		//collide with the ground
@@ -118,64 +122,64 @@ window.onload = function() {
 		cursor = this.input.keyboard.createCursorKeys();//create input check
 		lifeText = this.add.text(16, 16, 'Lives: 3', { fontSize: '20px', fill: '#001' });//create text for lives left
 		scoreText = this.add.text(146, 16, 'Score: 0', { fontSize: '20px', fill: '#001' });//create text for lives left
-		//create enemy objects
-		enemy = this.physics.add.group({
-        key: 'drone',
-		allowGravity: false,
-        repeat: 48,
-        setXY: { x: 120, y: 0, stepX: 100 }
-		});
-		//set up interaction with player
-		this.physics.add.overlap(player, enemy, hit, null, this);
+		timeText = this.add.text(276, 16, 'Time: 0:00', { fontSize: '20px', fill: '#001' });//create text for timer
 		
-		//create item objects
-		item = this.physics.add.group({
-			key: 'item',
-			allowGravity: false,
-			repeat: 25,
-			setXY: {x: 120, y: 450, stepX: 200 }
-		});
-		this.physics.add.overlap(player, item, pickUp, null, this);
+		
+		this.add.sprite(1400,400, 'boss');
+		//add timer
+		timer = this.time.addEvent({delay: 300000, callback: gameLost, callbackScope: this, loop: false});
 	}
 
-    function update()
+     function update()
     {	//copied from phaser tutorial
 		//console.log(player.y); //debug
-		if(wasHit && player.y >= 227) {//remove explosion after player has respawned
-			explode.destroy();//remove object
-			wasHit = false;//sets to false to avoid errors
+		var fillerZero = '';
+		//console.log(gameOver);
+		if(!gameOver){
+			currentTime = Math.floor(timer.getElapsedSeconds());
+			//console.log('time:' + currentTime);
+			if(currentTime % 60 <= 9){
+				fillerZero = '0';
+			}
+			else{
+				fillerZero = '';
+			}
+			timeText.setText('Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60);
 		}
+		
 		
 		//scoreText.x = player.x - 300
 		//console.log(player.x + ',' + player.y)
-		if(player.y == 199 && player.x >= 768){
-		
-		
-		
-		}
-		//console.log(player.x + ',' + player.y);
-		if((player.y <= 199 || player.y == 207) && player.x >= 768){//207 because the character goes through the platform in the github version
-			this.add.text(175, 200, 'YOU WIN!', {fontSize: '80px', fill: '#000'});//notify player
+		if(player.x >= 4960 && !gameOver){
+			console.log('end reached');
+			this.add.image(4600, 300, 'end');
+			this.add.text(4435, 200, 'Stage Cleared!', {fontSize: '40px', fill: '#000'});
+			this.add.text(4535, 300, 'Score: ' + score, {fontSize: '30px', fill: '#000'});
+			this.add.text(4535, 260, 'Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
 			gameOver = true;
-			return;
 		}
-	
-		/*if(player.y >= 560){//check if player has fallen off the platforms
-			player.setX(60);//reset player position
-			player.setY(0);
-			lives--;//decrement lives and update text
-			lifeText.setText('Lives: ' + lives);
-		}*/
+		
+		
 		if(lives == 0){
+			console.log('end reached');
+			if(player.x < 400){
+				this.add.image(400, 300, 'end');
+				this.add.text(300, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
+				this.add.text(300, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+				this.add.text(300, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
+			}
+			else{
+				this.add.image(player.x, 300, 'end');
+				this.add.text(player.x-100, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
+				this.add.text(player.x-80, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+				this.add.text(player.x-80, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
+			}
+			player.destroy();
 			gameOver = true;
-			//music.stop();//stop music from playing
-			lifeText.setText('GAME OVER');
-			this.add.text(175, 200, 'GAME OVER', {fontSize: '80px', fill: '#000'});//print text to alert player
-			player.destroy();//remove object
 			return;
 		}
 		
-		if (cursor.left.isDown)//left movement
+		if (cursor.left.isDown && !gameOver)//left movement
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
 				music = this.sound.add('music');
@@ -187,7 +191,7 @@ window.onload = function() {
 
 			player.anims.play('left', true);
 		}
-		else if (cursor.right.isDown)//right movement
+		else if (cursor.right.isDown && !gameOver)//right movement
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
 				music = this.sound.add('music');
@@ -204,7 +208,7 @@ window.onload = function() {
 			player.setVelocityX(0);
 
 		}
-		if (cursor.up.isDown && player.body.onFloor())
+		if (cursor.up.isDown && player.body.onFloor() && !gameOver)
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
 				//music = this.sound.add('music');
@@ -214,42 +218,71 @@ window.onload = function() {
 			player.setVelocityY(-330);
 		}
 		
-		enemy.children.iterate(function (child) {
-			if(child.y <= 25){//inital movement and movement from top
-				child.setVelocityY(Phaser.Math.FloatBetween(100, 800));
-			}
-			if(child.y >= 560){//movement from bottom
-				child.setVelocityY(Phaser.Math.FloatBetween(-100, -800));
-			}
-		});
+		
 		// set bounds so the camera won't go outside the game world
 		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
 		// make the camera follow the player
 		this.cameras.main.startFollow(player);
-		console.log(player.x);
+		
 		//score and life text follow player
 		if(player.x > 400 && player.x < 4598){
 			lifeText.x = player.x - 390;
 			scoreText.x = player.x - 260;
+			timeText.x = player.x - 130;
+		}
+		if(invincible){
+			console.log(invincibleTimer.getElapsedSeconds());
 		}
     }
 	
 	//collision functions
 	function hit(){
-		explode = this.add.image(player.x,player.y,'b00m');
-		wasHit = true;
-		//this.destroy(player.x,player.y,'b00m');
-		this.sound.play('boom');
-		//player.setX(60);//reset player position
-		//player.setY(0);
-		//lives--;//decrement lives and update text
+		
+		if(!invincible){
+			explode = this.add.image(player.x,player.y,'b00m');
+			this.time.addEvent({delay: 100, callback: reapExplosion, callbackScope: this, loop: false});
+			wasHit = true;
+			this.sound.play('boom');
+			if(player.x < 100 && lives != 1){
+				player.setX(60);//reset player position
+			}
+			else if(lives != 1){
+				player.setX(player.x - 100);
+			}
+		
+		player.setY(527);
+		lives--;//decrement lives and update text
 		lifeText.setText('Lives: ' + lives);
-	
+		invincible = true;
+			invincibleTimer = this.time.addEvent({delay: 5000, callback: stopInvincible, callbackScope: this, loop: false});
+		}
+		else{
+			console.log(invincible);
+		}
 	}
-	
+	//end of timer (5 min)
+	function gameLost(){
+			console.log('end reached');
+			this.add.image(player.x, 300, 'end');
+			this.add.text(player.x-80, 200, 'Time Up', {fontSize: '40px', fill: '#000'});
+			this.add.text(player.x-80, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+			this.add.text(player.x-80, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
+			player.destroy();
+			gameOver = true;
+			return;
+	}
 	function pickUp(player, item){
 		item.destroy();
 		score++;
 		scoreText.setText('Score: ' + score);
 	}
+	function reapExplosion(){
+		explode.destroy();
+	}
+	//end of invincibility
+	function stopInvincible(){
+		console.log('not invincible');
+		invincible = false;
+	}
 };
+
