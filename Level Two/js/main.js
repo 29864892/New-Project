@@ -45,6 +45,7 @@ window.onload = function() {
 	var scoreText;//text for score (# of items picked up)
 	var music;//in game music
 	var enemy;//enemy object
+	var ball;
 	var explode;//explosion animation
 	var wasHit = false;
 	var score = 0;
@@ -54,7 +55,9 @@ window.onload = function() {
 	var currentTime;
 	var invincible = false;
 	var invincibleTimer;
-	
+	var bossBar;
+	var bossFight = false;
+	var cameraSet = false;
     function preload ()
     {
 		
@@ -65,6 +68,8 @@ window.onload = function() {
 		this.load.audio('boom', 'assets/Explosion.mp3');//load in explosion sound https://www.freesoundeffects.com/free-sounds/explosion-10070/
 		this.load.image('b00m', 'assets/b00m.png');//https://www.pinclipart.com/pindetail/iToRRR_download-clip-art-comic-explosion-transparent-clipart-comic/
 		this.load.image('item','assets/item.png');
+		this.load.image('ball','assets/energy ball.png');
+		this.load.image('bar','assets/encounterBar.png');
 		//tilemap preload
 		this.load.tilemapTiledJSON('map', 'assets/levelTwo.json');
 		this.load.spritesheet('tiles', 'assets/levelTwo.png', {frameWidth: 50, frameHeight: 50});
@@ -96,22 +101,20 @@ window.onload = function() {
 		player.setCollideWorldBounds(true);//wont fall out of screen
 		//collide with the ground
 		this.physics.add.collider(this.groundLayer, player);
-		//this.physics.add.collider(player, platform);//player will not fall through platforms
 		
-		//copied from phaser tutorial
 		this.anims.create({//animation for moving left
 			key: 'left',
 			frames: this.anims.generateFrameNumbers('mydude', { start: 0, end: 3 }),
 			frameRate: 10,
 			repeat: -1
 		});
-		//copied from phaser tutorial
+		
 		this.anims.create({//turning animation
 			key: 'turn',
 			frames: [ { key: 'mydude', frame: 4 } ],
 			frameRate: 20
 		});
-		//copied from phaser tutorial
+		
 		this.anims.create({//right animation
 			key: 'right',
 			frames: this.anims.generateFrameNumbers('mydude', { start: 5, end: 8 }),
@@ -125,16 +128,32 @@ window.onload = function() {
 		timeText = this.add.text(276, 16, 'Time: 0:00', { fontSize: '20px', fill: '#001' });//create text for timer
 		
 		
-		this.add.sprite(1400,400, 'boss');
+		enemy = this.physics.add.sprite(1400,400, 'boss');
+		enemy.body.setAllowGravity(false)
+		ball = this.physics.add.sprite(1300,440, 'ball');
+		ball.body.setAllowGravity(false)
 		//add timer
 		timer = this.time.addEvent({delay: 300000, callback: gameLost, callbackScope: this, loop: false});
+		//bossBar = this.add.image(707,350,'bar');
+		bossBar = this.physics.add.staticGroup();
+		
+		this.physics.add.overlap(player, bossBar, hit, null, this);
+		this.physics.add.overlap(player, enemy, hit, null, this);
+		this.physics.add.overlap(player, ball, hit, null, this);
+		
+		this.physics.add.overlap(player, item, pickUp, null, this);
+		// set bounds so the camera won't go outside the game world
+		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
+		// make the camera follow the player
+		this.cameras.main.startFollow(player);
+		this.cameras.main.setFollowOffset(-300,0);
+		this.cameras.main.setRenderToTexture();
 	}
 
      function update()
-    {	//copied from phaser tutorial
-		//console.log(player.y); //debug
+    {	
+		//game information
 		var fillerZero = '';
-		//console.log(gameOver);
 		if(!gameOver){
 			currentTime = Math.floor(timer.getElapsedSeconds());
 			//console.log('time:' + currentTime);
@@ -146,8 +165,21 @@ window.onload = function() {
 			}
 			timeText.setText('Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60);
 		}
-		
-		
+		//start of battle
+		if(!bossFight && player.x >= 800){
+			bossBar.create(707,350,'bar');
+			bossFight = true;
+		}
+		//stop camera from following the player
+		if(bossFight && !cameraSet){
+			if(player.x >= 800){
+				this.cameras.main.stopFollow(player);
+			}
+			lifeText.x = 707;
+			scoreText.x = 837;
+			timeText.x = 967;
+			cameraSet = true;
+		}
 		//scoreText.x = player.x - 300
 		//console.log(player.x + ',' + player.y)
 		if(player.x >= 4960 && !gameOver){
@@ -158,6 +190,7 @@ window.onload = function() {
 			this.add.text(4535, 260, 'Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
 			gameOver = true;
 		}
+		
 		
 		
 		if(lives == 0){
@@ -219,16 +252,13 @@ window.onload = function() {
 		}
 		
 		
-		// set bounds so the camera won't go outside the game world
-		this.cameras.main.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-		// make the camera follow the player
-		this.cameras.main.startFollow(player);
 		
+		console.log(player.x);
 		//score and life text follow player
-		if(player.x > 400 && player.x < 4598){
-			lifeText.x = player.x - 390;
-			scoreText.x = player.x - 260;
-			timeText.x = player.x - 130;
+		if(player.x > 90 && !bossFight){
+			lifeText.x = player.x - 80;
+			scoreText.x = player.x + 50;
+			timeText.x = player.x + 180;
 		}
 		if(invincible){
 			console.log(invincibleTimer.getElapsedSeconds());
@@ -260,6 +290,7 @@ window.onload = function() {
 			console.log(invincible);
 		}
 	}
+	
 	//end of timer (5 min)
 	function gameLost(){
 			console.log('end reached');
