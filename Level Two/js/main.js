@@ -67,7 +67,7 @@ window.onload = function() {
 		this.load.image('item','assets/item.png');
 		//tilemap preload
 		this.load.tilemapTiledJSON('map', 'assets/levelTwo.json');
-		this.load.spritesheet('tiles', 'assets/LevelTwo.png', {frameWidth: 50, frameHeight: 50});
+		this.load.spritesheet('tiles', 'assets/levelTwo.png', {frameWidth: 50, frameHeight: 50});
     }
 
     function create ()
