@@ -58,10 +58,17 @@ window.onload = function() {
 	var bossBar;
 	var bossFight = false;
 	var cameraSet = false;
+	var fillerZero = '';
+	var fireTimer;
+	var projectile;
+	var bombs;
+	var ally;
     function preload ()
     {
-		
+		this.load.image('drone', 'assets/policedrone.png');
 		this.load.spritesheet('mydude', 'assets/mydude.png', { frameWidth: 32, frameHeight: 48 });//load in character sprite (sprite made by me)
+		this.load.spritesheet('ballSprite', 'assets/ballSheet.png', { frameWidth: 50, frameHeight: 50 });//ball sprite
+		this.load.spritesheet('bombSprite', 'assets/bombsheet.png', { frameWidth: 30, frameHeight: 30 });//ally projectiles
 		this.load.audio('music', 'assets/Six_Umbrellas_09_Longest_Summer.mp3');//https://freemusicarchive.org/music/Six_Umbrellas
 		this.load.image('boss', 'assets/boss.png');// load enemy image (made by me)
 		this.load.image('arrow', 'assets/arrow.png');//load in arrow(made by me)
@@ -70,6 +77,7 @@ window.onload = function() {
 		this.load.image('item','assets/item.png');
 		this.load.image('ball','assets/energy ball.png');
 		this.load.image('bar','assets/encounterBar.png');
+		this.load.image('ally', 'assets/random.png');
 		//tilemap preload
 		this.load.tilemapTiledJSON('map', 'assets/levelTwo.json');
 		this.load.spritesheet('tiles', 'assets/levelTwo.png', {frameWidth: 50, frameHeight: 50});
@@ -121,6 +129,7 @@ window.onload = function() {
 			frameRate: 10,
 			repeat: -1
 		});
+		
 		//copied from phaser tutorial
 		cursor = this.input.keyboard.createCursorKeys();//create input check
 		lifeText = this.add.text(16, 16, 'Lives: 3', { fontSize: '20px', fill: '#001' });//create text for lives left
@@ -129,9 +138,13 @@ window.onload = function() {
 		
 		
 		enemy = this.physics.add.sprite(1400,400, 'boss');
-		enemy.body.setAllowGravity(false)
-		ball = this.physics.add.sprite(1300,440, 'ball');
-		ball.body.setAllowGravity(false)
+		
+		enemy.body.setAllowGravity(false);
+		ball = this.physics.add.sprite(1300,440, 'ballSprite');
+		ball.body.setAllowGravity(false);
+		ball.visible = false;
+		fireTimer = this.time.addEvent({delay: 5000, callback: fire, callbackScope: this, loop: true});
+		fireTimer.paused = true;
 		//add timer
 		timer = this.time.addEvent({delay: 300000, callback: gameLost, callbackScope: this, loop: false});
 		//bossBar = this.add.image(707,350,'bar');
@@ -148,12 +161,45 @@ window.onload = function() {
 		this.cameras.main.startFollow(player);
 		this.cameras.main.setFollowOffset(-300,0);
 		this.cameras.main.setRenderToTexture();
+		
+		//boss projectile animations
+		this.anims.create({//right animation
+			key: '1',
+			frames: this.anims.generateFrameNumbers('ballSprite', { start: 0, end: 1 }),
+			frameRate: 10,
+			repeat: -1
+		});
+		this.anims.create({//right animation
+			key: '2',
+			frames: this.anims.generateFrameNumbers('ballSprite', { start: 1, end: 0 }),
+			frameRate: 10,
+			repeat: -1
+		});
+		//bomb creation and animations
+		projectile = this.physics.add.sprite(-50, -50, 'bombSprite');
+		//projectile.body.setAllowGravity(false);
+		this.anims.create({//right animation
+			key: '1b',
+			frames: this.anims.generateFrameNumbers('bombSprite', { start: 0, end: 1 }),
+			frameRate: 10,
+			repeat: -1
+		});
+		this.anims.create({//right animation
+			key: '2b',
+			frames: this.anims.generateFrameNumbers('bombSprite', { start: 1, end: 0 }),
+			frameRate: 10,
+			repeat: -1
+		});
+		ally = this.physics.add.sprite(900, 227, 'ally');
+		ally.body.setAllowGravity(false);
+		ally.setVelocityX(50);
+		ally.setVelocityY(50);
 	}
 
      function update()
     {	
 		//game information
-		var fillerZero = '';
+		
 		if(!gameOver){
 			currentTime = Math.floor(timer.getElapsedSeconds());
 			//console.log('time:' + currentTime);
@@ -195,23 +241,31 @@ window.onload = function() {
 		
 		if(lives == 0){
 			console.log('end reached');
-			if(player.x < 400){
-				this.add.image(400, 300, 'end');
-				this.add.text(300, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
-				this.add.text(300, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
-				this.add.text(300, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
-			}
-			else{
-				this.add.image(player.x, 300, 'end');
-				this.add.text(player.x-100, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
-				this.add.text(player.x-80, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
-				this.add.text(player.x-80, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
-			}
+		
+				this.add.image(900, 300, 'end');
+				this.add.text(1000, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
+				this.add.text(1000, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+				this.add.text(1000, 260, 'Time ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
+			
+			
 			player.destroy();
 			gameOver = true;
 			return;
 		}
-		
+		//show ball charging and prepare boss attack
+		if(bossFight){
+			fireTimer.paused = false;
+			ball.visible = true;
+			ball.anims.play('1', true);
+			projectile.anims.play('1b',true);
+		}
+		if(ball.x < 600 || ball.y > 600){
+			ball.setVelocityX(0);
+			ball.setVelocityY(0);
+			ball.x = 1300;
+			ball.y = 430;
+			
+		}
 		if (cursor.left.isDown && !gameOver)//left movement
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
@@ -224,6 +278,7 @@ window.onload = function() {
 
 			player.anims.play('left', true);
 		}
+		
 		else if (cursor.right.isDown && !gameOver)//right movement
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
@@ -253,15 +308,28 @@ window.onload = function() {
 		
 		
 		
-		console.log(player.x);
+		//console.log(player.x);
 		//score and life text follow player
 		if(player.x > 90 && !bossFight){
 			lifeText.x = player.x - 80;
 			scoreText.x = player.x + 50;
 			timeText.x = player.x + 180;
 		}
-		if(invincible){
-			console.log(invincibleTimer.getElapsedSeconds());
+		//if(invincible){
+			//console.log(invincibleTimer.getElapsedSeconds());
+		//}
+		//ally movement
+		if(ally.x > 1200){
+			ally.setVelocityX(-50);
+		}
+		else if(ally.x < 900){
+			ally.setVelocityX(50);
+		}
+		else if(ally.y < 200){
+			ally.setVelocityY(50);
+		}
+		else if(ally.y > 300){
+			ally.setVelocityY(-50);
 		}
     }
 	
@@ -269,19 +337,17 @@ window.onload = function() {
 	function hit(){
 		
 		if(!invincible){
-			explode = this.add.image(player.x,player.y,'b00m');
-			this.time.addEvent({delay: 100, callback: reapExplosion, callbackScope: this, loop: false});
-			wasHit = true;
-			this.sound.play('boom');
-			if(player.x < 100 && lives != 1){
-				player.setX(60);//reset player position
-			}
-			else if(lives != 1){
-				player.setX(player.x - 100);
-			}
+		explode = this.add.image(player.x,player.y,'b00m');
+		this.time.addEvent({delay: 100, callback: reapExplosion, callbackScope: this, loop: false});
+		wasHit = true;
+		this.sound.play('boom');
+		if(lives != 1){
+			player.setX(800);//reset player position
+		}
+			
 		
 		player.setY(527);
-		lives--;//decrement lives and update text
+		//lives--;//decrement lives and update text
 		lifeText.setText('Lives: ' + lives);
 		invincible = true;
 			invincibleTimer = this.time.addEvent({delay: 5000, callback: stopInvincible, callbackScope: this, loop: false});
@@ -300,6 +366,7 @@ window.onload = function() {
 			this.add.text(player.x-80, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
 			player.destroy();
 			gameOver = true;
+			fireTimer.paused = true;
 			return;
 	}
 	function pickUp(player, item){
@@ -314,6 +381,36 @@ window.onload = function() {
 	function stopInvincible(){
 		console.log('not invincible');
 		invincible = false;
+	}
+	function fire(){
+				var velX;
+				var velY;
+			console.log('xd');
+			if(player.x < 1000){
+				velX = -800;
+				velY = Phaser.Math.FloatBetween(90, 200);
+				console.log('a');
+			}
+			else if(player.x < 1200){
+				velX = -600;
+				velY = Phaser.Math.FloatBetween(150, 200);
+				console.log('a');
+			}
+			else{
+				velX = Phaser.Math.FloatBetween(0,100);
+				velY = 400;
+				console.log('b');
+			}
+			ball.setVelocityX(velX);
+			ball.setVelocityY(velY);
+			console.log(velX + ',' + velY);
+			console.log(player.x + '    ' + player.y);
+			projectile.body.setGravityY(1);
+			projectile.setVelocityY(0);
+			projectile.x = ally.x;
+			projectile.y = ally.y;
+			projectile.setVelocityX(500);
+			//projectile.setVelocityY(500);
 	}
 };
 
