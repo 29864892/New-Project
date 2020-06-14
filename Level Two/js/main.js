@@ -45,6 +45,9 @@ window.onload = function() {
 	var scoreText;//text for score (# of items picked up)
 	var music;//in game music
 	var enemy;//enemy object
+	var enemyHp = 5;
+	var enemyHit;
+	var eAnimation = false;
 	var ball;
 	var explode;//explosion animation
 	var wasHit = false;
@@ -65,12 +68,16 @@ window.onload = function() {
 	var ally;
     function preload ()
     {
-		this.load.image('drone', 'assets/policedrone.png');
+		this.load.image('end', 'assets/endScreen.png');
 		this.load.spritesheet('mydude', 'assets/mydude.png', { frameWidth: 32, frameHeight: 48 });//load in character sprite (sprite made by me)
 		this.load.spritesheet('ballSprite', 'assets/ballSheet.png', { frameWidth: 50, frameHeight: 50 });//ball sprite
 		this.load.spritesheet('bombSprite', 'assets/bombsheet.png', { frameWidth: 30, frameHeight: 30 });//ally projectiles
 		this.load.audio('music', 'assets/Six_Umbrellas_09_Longest_Summer.mp3');//https://freemusicarchive.org/music/Six_Umbrellas
+		//boss assets
 		this.load.image('boss', 'assets/boss.png');// load enemy image (made by me)
+		this.load.spritesheet('bossSheet','assets/bossSheet.png', {frameWidth: 200, frameHeight: 300});//boss animation image
+		this.load.image('bossF','assets/bossF.png');
+		
 		this.load.image('arrow', 'assets/arrow.png');//load in arrow(made by me)
 		this.load.audio('boom', 'assets/Explosion.mp3');//load in explosion sound https://www.freesoundeffects.com/free-sounds/explosion-10070/
 		this.load.image('b00m', 'assets/b00m.png');//https://www.pinclipart.com/pindetail/iToRRR_download-clip-art-comic-explosion-transparent-clipart-comic/
@@ -85,7 +92,6 @@ window.onload = function() {
 
     function create ()
     {
-		this.add.image(400,300,'city');
 		
 		//load map
 		map = this.make.tilemap({key: 'map'});
@@ -139,6 +145,13 @@ window.onload = function() {
 		
 		enemy = this.physics.add.sprite(1400,400, 'boss');
 		
+		this.anims.create({//right animation
+			key: 'bossDmg',
+			frames: this.anims.generateFrameNumbers('bossSheet', { start: 0, end: 1 }),
+			frameRate: 10,
+			repeat: -1
+		});
+		
 		enemy.body.setAllowGravity(false);
 		ball = this.physics.add.sprite(1300,440, 'ballSprite');
 		ball.body.setAllowGravity(false);
@@ -177,7 +190,8 @@ window.onload = function() {
 		});
 		//bomb creation and animations
 		projectile = this.physics.add.sprite(-50, -50, 'bombSprite');
-		//projectile.body.setAllowGravity(false);
+		//collide with enemy
+		this.physics.add.overlap(projectile, enemy, eHit, null, this);
 		this.anims.create({//right animation
 			key: '1b',
 			frames: this.anims.generateFrameNumbers('bombSprite', { start: 0, end: 1 }),
@@ -215,6 +229,8 @@ window.onload = function() {
 		if(!bossFight && player.x >= 800){
 			bossBar.create(707,350,'bar');
 			bossFight = true;
+			//ally throws bomb 
+			this.time.addEvent({delay: 6000, callback: allyFire, callbackScope: this, loop: true});
 		}
 		//stop camera from following the player
 		if(bossFight && !cameraSet){
@@ -226,34 +242,48 @@ window.onload = function() {
 			timeText.x = 967;
 			cameraSet = true;
 		}
-		//scoreText.x = player.x - 300
-		//console.log(player.x + ',' + player.y)
-		if(player.x >= 4960 && !gameOver){
-			console.log('end reached');
-			this.add.image(4600, 300, 'end');
-			this.add.text(4435, 200, 'Stage Cleared!', {fontSize: '40px', fill: '#000'});
-			this.add.text(4535, 300, 'Score: ' + score, {fontSize: '30px', fill: '#000'});
-			this.add.text(4535, 260, 'Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
-			gameOver = true;
-		}
 		
-		
-		
+		//player loss
 		if(lives == 0){
 			console.log('end reached');
 		
-				this.add.image(900, 300, 'end');
-				this.add.text(1000, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
-				this.add.text(1000, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
-				this.add.text(1000, 260, 'Time ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
+				this.add.image(1065, 300, 'end');
+				this.add.text(900, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
+				this.add.text(900, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+				this.add.text(900, 260, 'Time ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
 			
-			
+			ball.destroy();
+			enemy.anims.stop('bossDmg');
+			enemy.setFrame(0);
+			ally.setVelocityY(-100);
+			ally.setVelocityX(100);
 			player.destroy();
 			gameOver = true;
 			return;
 		}
+		
+		//player win
+		if(enemyHp == 0 && !gameOver){
+			console.log('end reached');
+			this.add.image(1120, 300, 'end');
+			this.add.text(950, 200, 'Stage Cleared!', {fontSize: '40px', fill: '#000'});
+			this.add.text(950, 300, 'Score: ' + score, {fontSize: '30px', fill: '#000'});
+			this.add.text(950, 260, 'Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
+			ball.destroy();
+			enemyHit.paused = true;
+			enemy.destroy();
+			this.add.image(1400,400, 'bossF');
+			gameOver = true;
+			return;
+		}
+		
+		//stop player from leaving area
+		if(player.x < 730 && bossFight){
+			player.x = 740;
+		}
+		console.log(player.x);
 		//show ball charging and prepare boss attack
-		if(bossFight){
+		if(bossFight && !gameOver){
 			fireTimer.paused = false;
 			ball.visible = true;
 			ball.anims.play('1', true);
@@ -347,7 +377,7 @@ window.onload = function() {
 			
 		
 		player.setY(527);
-		//lives--;//decrement lives and update text
+		lives--;//decrement lives and update text
 		lifeText.setText('Lives: ' + lives);
 		invincible = true;
 			invincibleTimer = this.time.addEvent({delay: 5000, callback: stopInvincible, callbackScope: this, loop: false});
@@ -367,6 +397,7 @@ window.onload = function() {
 			player.destroy();
 			gameOver = true;
 			fireTimer.paused = true;
+			enemyHit.paused = true;
 			return;
 	}
 	function pickUp(player, item){
@@ -383,6 +414,7 @@ window.onload = function() {
 		invincible = false;
 	}
 	function fire(){
+		if(!gameOver){
 				var velX;
 				var velY;
 			console.log('xd');
@@ -405,12 +437,37 @@ window.onload = function() {
 			ball.setVelocityY(velY);
 			console.log(velX + ',' + velY);
 			console.log(player.x + '    ' + player.y);
+			
+			
+		}
+		else{
+			console.log('gameOver');
+		}
+	}
+	function eHit(){
+		projectile.y = 1000;
+		enemyHp--;
+		console.log('bossHp: ' + enemyHp);
+		if(!eAnimation){
+			enemy.anims.play('bossDmg', false);
+			eAnimation = true;
+			enemyHit = this.time.addEvent({delay: 600, callback: stopEnemyFlash, callbackScope: this, loop: false});
+		}
+	}
+	
+	function stopEnemyFlash(){
+		enemy.anims.stop('bossDmg');
+		eAnimation = false;
+	}
+	function allyFire(){
+		//fire projectile
+		if(!gameOver){
 			projectile.body.setGravityY(1);
 			projectile.setVelocityY(0);
 			projectile.x = ally.x;
 			projectile.y = ally.y;
 			projectile.setVelocityX(500);
-			//projectile.setVelocityY(500);
+		}
 	}
 };
 
