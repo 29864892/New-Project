@@ -70,8 +70,10 @@ window.onload = function() {
     {
 		this.load.image('end', 'assets/endScreen.png');
 		this.load.spritesheet('mydude', 'assets/mydude.png', { frameWidth: 32, frameHeight: 48 });//load in character sprite (sprite made by me)
+		
 		this.load.spritesheet('ballSprite', 'assets/ballSheet.png', { frameWidth: 50, frameHeight: 50 });//ball sprite
 		this.load.spritesheet('bombSprite', 'assets/bombsheet.png', { frameWidth: 30, frameHeight: 30 });//ally projectiles
+		
 		this.load.audio('music', 'assets/Six_Umbrellas_09_Longest_Summer.mp3');//https://freemusicarchive.org/music/Six_Umbrellas
 		//boss assets
 		this.load.image('boss', 'assets/boss.png');// load enemy image (made by me)
