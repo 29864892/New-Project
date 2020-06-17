@@ -45,10 +45,9 @@ window.onload = function() {
 	var scoreText;//text for score (# of items picked up)
 	var music;//in game music
 	var enemy;//enemy object
-	var enemyHp = 5;
-	var enemyHit;
-	var eAnimation = true;
-	
+	var enemyGroup;//group of enemies
+	var left = true;
+	var right = false;
 	var explode;//explosion animation
 	var wasHit = false;
 	var hiding = false;
@@ -149,25 +148,37 @@ window.onload = function() {
 		enemy.setVelocityX(-100);
 		 
 		this.anims.create({//left animation
-			key: 'eleft',
+			key: 'eLeft',
 			frames: this.anims.generateFrameNumbers('officer', { start: 0, end: 3 }),
 			frameRate: 10,
 			
 		});
 		
 		this.anims.create({//left animation
-			key: 'turn',
+			key: 'eTurn',
 			frames: [ { key: 'officer', frame: 4 } ],
 			frameRate: 20
 		});
 		
 		this.anims.create({//left animation
-			key: 'eright',
+			key: 'eRight',
 			frames: this.anims.generateFrameNumbers('officer', { start: 5, end: 8 }),
 			frameRate: 10,
 			
 		});
 		
+		enemyGroup = this.physics.add.group({
+        key: 'officer',
+		allowGravity: false,
+        repeat: 3,
+        setXY: { x: 1200, y: 527, stepX: 1000 }
+		});
+		this.physics.add.overlap(player, enemyGroup, hit, null, this);
+		this.physics.add.collider(enemyGroup, enemyGroup, gturn, null, this);
+		
+		enemyGroup.children.iterate(function (child) {
+				child.setVelocityX(-100);
+		});
 		//add timer
 		timer = this.time.addEvent({delay: 300000, callback: gameLost, callbackScope: this, loop: false});
 		//bossBar = this.add.image(707,350,'bar');
@@ -192,58 +203,98 @@ window.onload = function() {
      function update()
     {	
 		//game information
-		//console.log(player.x);
+		console.log(player.x + ',' + player.y);
 		//player hidden check
-		if(player.x > 0 && player.x < 358){
+		if((player.x > 0 && player.x < 358) || (player.x > 1217 && player.x < 1900) || (player.x > 2257 && player.x < 2600) || (player.x > 3305 && player.x < 3643)){
 			hiding = true;
 		}
 		else{
 			hiding = false;
 		}
+		
+		//console.log(player.x);
+		
+		//enemy animations
+		if(!enemy.anims.isPlaying){
+			if(enemy.body.velocity.x > 0){
+				enemy.anims.play('eRight');
+				//console.log('right');
+			}
+			else if(enemy.body.velocity.x < 0){
+				enemy.anims.play('eLeft');
+				//console.log('left');
+			}
+			else{
+				enemy.anims.play('eTurn');
+			}
+		}
 		//enemy movement
-		/**if(enemy.x <= 20 && enemy.anims.isPlaying){
-			enemy.setVelocityX(0);
-			console.log(enemy.anims.isPlaying);
-			enemy.setFrame(4);
-			//this.time.addEvent({delay: 500, callback: EnemyMoveRight, callbackScope: this, loop: false});
+		if(enemy.x > 500 && !left){
 			enemy.anims.stop;
-			enemy.setVelocityX(100);
-		}
-		else if(enemy.x > 1000){
+			enemy.anims.play('eTurn');
 			enemy.setVelocityX(-100);
+			left = true;
+			right = false;
 		}
-		if(enemy.body.velocity.x < 0){
-			
-				enemy.anims.play('eright');
-			console.log('left');
-		}
-		else if(enemy.body.velocity.x > 0){
-			//if(!enemy.anims.isPlaying){
-				enemy.anims.play('eleft');
-				console.log('moving right');
-			//}
-		}*/
-		if(!enemy.anims.isPlaying && enemy.body.velocity.x < 0){
-			console.log('playing');
-			enemy.anims.play('eleft');
-		}
-		if(enemy.x <= 20){
+		
+		if(enemy.x < 20 && !right){
 			enemy.anims.stop;
-			eAnimation = false;
-			enemy.setFrame(5);
-			console.log('animation stopped');
-			if(!enemy.anims.isPlaying){
-				enemy.anims.play('eright');
-				enemy.setVelocityX(100);
-			}
+			enemy.anims.play('eTurn');
+			enemy.setVelocityX(100);
+			right = true;
+			left = false;
 		}
-		if(enemy.body.velocity.x > 0){
-			if(!enemy.anims.isPlaying){
-				enemy.anims.play('eright');
-				console.log('moving right');
+		
+		//enemyGroup animations and movement
+		enemyGroup.children.iterate(function (child) {
+			if(child.x < 1100){
+				child.anims.stop;
+				child.anims.play('eTurn');
+				child.setVelocityX(100);
 			}
-		}
-		console.log(enemy.anims.repeatCounter);
+			if(child.x > 4057){
+				child.anims.stop;
+				child.anims.play('eTurn');
+				child.setVelocityX(-100);
+			}
+			//player detected nearby
+			if((player.x - child.x <= 50 && player.x -child.x >= -50) && !hiding){
+				//midair
+				if(player.y > 520){
+					child.anims.play('eTurn');
+					if(player.x > child.x){ 
+						child.setVelocityX(200);
+					}
+					else{
+						child.setVelocityX(-200);
+					}
+				}//ground
+				else{
+					if(player.x > child.x){
+						child.setVelocityX(200);
+					}
+					else{
+						child.setVelocityX(-200);
+					}
+				}
+				console.log('seen!');
+			}
+			if(!child.anims.isPlaying){
+				if(child.body.velocity.x > 0){
+					child.anims.play('eRight');
+					//console.log('eRight');
+				}
+				else if(child.body.velocity.x < 0){
+					child.anims.play('eLeft');
+					//console.log('eLeft');
+				}
+				else{
+					child.anims.play('eTurn');
+				}
+			}
+		});
+		//console.log(enemy.body.velocity.x);
+		
 		if(!gameOver){
 			currentTime = Math.floor(timer.getElapsedSeconds());
 			
@@ -260,37 +311,34 @@ window.onload = function() {
 		//player loss
 		if(lives == 0){
 			console.log('end reached');
-		
-				this.add.image(1065, 300, 'end');
-				this.add.text(900, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
-				this.add.text(900, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
-				this.add.text(900, 260, 'Time ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
-			
-			
-			
-			
+			if(player.x < 400){
+				this.add.image(400, 300, 'end');
+				this.add.text(300, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
+				this.add.text(300, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+				this.add.text(300, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
+			}
+			else{
+				this.add.image(player.x, 300, 'end');
+				this.add.text(player.x-100, 200, 'Game Over', {fontSize: '40px', fill: '#000'});
+				this.add.text(player.x-80, 300, 'Score ' + score, {fontSize: '30px', fill: '#000'});
+				this.add.text(player.x-80, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
+			}
 			player.destroy();
 			gameOver = true;
 			return;
 		}
-		
-		//player win
-		if(enemyHp == 0 && !gameOver){
+		//player.x = 4901;
+		//player win (reach end of level);
+		if(player.x > 4900){
 			console.log('end reached');
-			this.add.image(1120, 300, 'end');
-			this.add.text(950, 200, 'Stage Cleared!', {fontSize: '40px', fill: '#000'});
-			this.add.text(950, 300, 'Score: ' + score, {fontSize: '30px', fill: '#000'});
-			this.add.text(950, 260, 'Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
-			
-			enemyHit.paused = true;
-			enemy.destroy();
-			this.add.image(1400,400, 'bossF');
+			this.add.image(4600, 300, 'end');
+			this.add.text(4435, 200, 'Stage Cleared!', {fontSize: '40px', fill: '#000'});
+			this.add.text(4435, 300, 'Score: ' + score, {fontSize: '30px', fill: '#000'});
+			this.add.text(4435, 260, 'Time: ' + Math.floor(currentTime / 60) + ':' + fillerZero + currentTime % 60, {fontSize: '30px', fill: '#000'});
 			gameOver = true;
 			return;
 		}
 		
-		
-		//console.log(player.x);
 		
 		if (cursor.left.isDown && !gameOver)//left movement
 		{
@@ -322,7 +370,7 @@ window.onload = function() {
 			player.setVelocityX(0);
 
 		}
-		if (cursor.up.isDown && player.body.onFloor() && !gameOver)
+		if (cursor.up.isDown && player.body.onFloor() && !gameOver && !hiding)
 		{
 			if(firstmove){//implement sound compatible with chrome (input before audio)
 				//music = this.sound.add('music');
@@ -336,10 +384,10 @@ window.onload = function() {
 		
 		//console.log(player.x);
 		//score and life text follow player
-		if(player.x > 90){
-			lifeText.x = player.x - 80;
-			scoreText.x = player.x + 50;
-			timeText.x = player.x + 180;
+		if(player.x > 400 && player.x < 4600){
+			lifeText.x = player.x - 390;
+			scoreText.x = player.x - 260;
+			timeText.x = player.x - 130;
 		}
 		//if(invincible){
 			//console.log(invincibleTimer.getElapsedSeconds());
@@ -357,7 +405,7 @@ window.onload = function() {
 		wasHit = true;
 		this.sound.play('boom');
 		if(lives != 1){
-			player.setX(800);//reset player position
+			player.setX(318);//reset player position
 		}
 			
 		
@@ -370,8 +418,8 @@ window.onload = function() {
 		else{
 			if(invincible)
 			console.log(invincible);
-			else
-				console.log('hidden');
+			//else
+				//console.log('hidden');
 		}
 	}
 	
@@ -384,8 +432,7 @@ window.onload = function() {
 			this.add.text(player.x-80, 260, 'Time ' +  currentTime, {fontSize: '30px', fill: '#000'});
 			player.destroy();
 			gameOver = true;
-			fireTimer.paused = true;
-			enemyHit.paused = true;
+			
 			return;
 	}
 	function pickUp(player, item){
@@ -401,41 +448,30 @@ window.onload = function() {
 		console.log('not invincible');
 		invincible = false;
 	}
-	function fire(){
-		if(!gameOver){
-				var velX;
-				var velY;
-			console.log('xd');
-			if(player.x < 1000){
-				velX = -800;
-				velY = Phaser.Math.FloatBetween(90, 200);
-				console.log('a');
-			}
-			else if(player.x < 1200){
-				velX = -600;
-				velY = Phaser.Math.FloatBetween(150, 200);
-				console.log('a');
-			}
-			else{
-				velX = Phaser.Math.FloatBetween(0,100);
-				velY = 400;
-				console.log('b');
-			}
-			
-			console.log(velX + ',' + velY);
-			console.log(player.x + '    ' + player.y);
-			
-			
+	
+	function gturn(enemyGroup1, enemyGroup2){
+		
+		//turn after collision
+		if(enemyGroup1.x < enemyGroup2.x){
+			enemyGroup1.anims.play('eTurn');
+			enemyGroup1.setVelocityX(-100);
+			enemyGroup1.anims.play('eLeft');
 		}
 		else{
-			console.log('gameOver');
+			enemyGroup1.anims.play('eTurn');
+			enemyGroup1.setVelocityX(100);
+			enemyGroup1.anims.play('eRight');
 		}
-	}
-	
-	function EnemyMoveRight(){
-		enemy.setVelocityX(100);
-		
-
+		if(enemyGroup2.x < enemyGroup1.x){
+			enemyGroup2.anims.play('eTurn');
+			enemyGroup2.setVelocityX(-100);
+			enemyGroup2.anims.play('eLeft');
+		}
+		else{
+			enemyGroup2.anims.play('eTurn');
+			enemyGroup2.setVelocityX(100);
+			enemyGroup2.anims.play('eRight');
+		}
 	}
 };
 
