@@ -89,7 +89,7 @@ window.onload = function() {
 		this.load.image('ally', 'assets/random.png');
 		//tilemap preload
 		this.load.tilemapTiledJSON('map', 'assets/levelTwo.json');
-		this.load.spritesheet('tiles', 'assets/levelTwo.png', {frameWidth: 50, frameHeight: 50});
+		this.load.spritesheet('level4', 'assets/levelTwo.png', {frameWidth: 50, frameHeight: 50});
     }
 
     function create ()
@@ -100,8 +100,8 @@ window.onload = function() {
 		//ground tiles
 		
 		//tileset = map.addTilesetImage('tilesetNameInTiled', 'tilesetNameInPhaser');
-		var groundTiles = map.addTilesetImage('levelTwo','tiles');
-		var cityTiles = map.addTilesetImage('levelTwo', 'tiles');
+		var groundTiles = map.addTilesetImage('levelTwo','level4');
+		var cityTiles = map.addTilesetImage('levelTwo', 'level4');
 		//create the background of the city
 		this.cityImg = map.createDynamicLayer('Tile Layer 1', cityTiles, 0, 0); 
 		//create ground 
