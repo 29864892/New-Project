@@ -79,7 +79,7 @@ window.onload = function() {
 		this.load.audio('music', 'assets/Six_Umbrellas_09_Longest_Summer.mp3');//https://freemusicarchive.org/music/Six_Umbrellas
 		//boss assets
 		this.load.image('boss', 'assets/bossV2.png');// load enemy image (made by me)
-		this.load.spritesheet('bossV2Sheet','assets/bossV2Sheet.png', {frameWidth: 234, frameHeight: 427});//boss animation image
+		this.load.spritesheet('bossV2Sheet','assets/bossV2sheet.png', {frameWidth: 234, frameHeight: 427});//boss animation image
 		this.load.image('bossF','assets/bossV2f.png');
 		
 		this.load.image('minion', 'assets/officerV2.png');
