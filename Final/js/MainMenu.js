@@ -19,14 +19,9 @@ BasicGame.MainMenu.prototype = {
 		//this.music.play();
 
 		this.add.sprite(0, 0, 'menu');
-		this.playButton = this.add.button( 270, 290, 'playButton', this.startGame, this);
+		this.playButton = this.add.button( 300, 290, 'playButton', this.startGame, this);
+		this.controlsButton = this.add.button (270, 200, 'controlButton', this.controlState, this);
 		console.log('Main menu');
-	},
-
-	update: function () {
-
-		//	Do some nice funky main menu effect here
-		
 	},
 
 	startGame: function (pointer) {
@@ -35,9 +30,13 @@ BasicGame.MainMenu.prototype = {
 		//this.music.stop();
 		console.log('lvl 1 start');
 		//	And start the actual game
-		//this.state.start('startOne');
-		//this.state.start('Game');
+		this.state.start('LevelOne');
+	
 
+	},
+	
+	controlState: function (pointer){
+		console.log('control state');
+		this.state.start('Controls');
 	}
-
 };
