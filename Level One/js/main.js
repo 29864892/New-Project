@@ -252,7 +252,7 @@ window.onload = function() {
 			timeText.x = player.x - 130;
 		}
 		if(invincible){
-			console.log(invincibleTimer.getElapsedSeconds());
+			//console.log(invincibleTimer.getElapsedSeconds());
 		}
     }
 	
@@ -263,7 +263,7 @@ window.onload = function() {
 			explode = this.add.image(player.x,player.y,'b00m');
 			this.time.addEvent({delay: 100, callback: reapExplosion, callbackScope: this, loop: false});
 			wasHit = true;
-			this.sound.play('boom');
+			//this.sound.play('boom');
 			if(player.x < 100 && lives != 1){
 				player.setX(60);//reset player position
 			}
@@ -278,7 +278,7 @@ window.onload = function() {
 			invincibleTimer = this.time.addEvent({delay: 5000, callback: stopInvincible, callbackScope: this, loop: false});
 		}
 		else{
-			console.log(invincible);
+			//console.log(invincible);
 		}
 	}
 	//end of timer (5 min)

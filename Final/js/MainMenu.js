@@ -18,8 +18,8 @@ BasicGame.MainMenu.prototype = {
 		//this.music = this.add.audio('titleMusic');
 		//this.music.play();
 
-		this.add.sprite(0, 0, 'preloaderBackground');
-		//this.playButton = this.add.button( 270, 390, 'playButton', this.startGame, this);
+		this.add.sprite(0, 0, 'menu');
+		this.playButton = this.add.button( 270, 290, 'playButton', this.startGame, this);
 		console.log('Main menu');
 	},
 
@@ -33,7 +33,7 @@ BasicGame.MainMenu.prototype = {
 
 		//	Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
 		//this.music.stop();
-
+		console.log('lvl 1 start');
 		//	And start the actual game
 		//this.state.start('startOne');
 		//this.state.start('Game');
