@@ -12,7 +12,7 @@ window.onload = function() {
 			}
 		},
 		scene: {
-			Boot3: Boot3,
+			boot3: boot3,
 			Preloader3: Preloader3,
 			MainMenu: MainMenu,
 			Controls: Controls,
@@ -28,7 +28,7 @@ window.onload = function() {
 	
 	let game = new Phaser.Game(config);
 	
-	game.scene.add('Boot3', Boot3);
+	game.scene.add('boot3', boot3);
 	game.scene.add('Preloader3', Preloader3);
 	game.scene.add('MainMenu', MainMenu);
 	game.scene.add('Controls', Controls);
