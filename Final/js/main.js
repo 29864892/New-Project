@@ -1,19 +1,44 @@
-"use strict";
 
 window.onload = function() {
 
-	//	Create your Phaser game and inject it into the 'game' div.
-	//	We did it in a window.onload event, but you can do it anywhere (requireJS load, anonymous function, jQuery dom ready, - whatever floats your boat)
-	var game = new Phaser.Game( 800, 600, Phaser.AUTO, 'arcade', 'game' );
-
-	//	Add the States your game has.
-	//	You don't have to do this in the html, it could be done in your Boot state too, but for simplicity I'll keep it here.
-	game.state.add('Boot', BasicGame.Boot);
-	game.state.add('Preloader', BasicGame.Preloader);
-	game.state.add('MainMenu', BasicGame.MainMenu);
-	game.state.add('Controls', BasicGame.Controls);
-	game.state.add('LevelOne', BasicGame.LevelOne);
-	//	Now start the Boot state.
-	game.state.start('Boot');
-
+	let config = {
+		type: Phaser.WEBGL,
+		width: 800,
+		height: 600,
+		physics:{
+			arcade: {
+				debug: true,
+				gravity: {y:200}
+			}
+		},
+		scene: {
+			boot3: boot3,
+			Preloader3: Preloader3,
+			MainMenu: MainMenu,
+			controls: controls,
+			LevelOne: LevelOne,
+			clear1: clear1,
+			LevelTwo: LevelTwo,
+			LevelThree: LevelThree,
+			LevelFour: LevelFour,
+			GameOver: GameOver,
+			Victory: Victory
+		}
+	};
+	
+	let game = new Phaser.Game(config);
+	
+	game.scene.add('boot3', boot3);
+	game.scene.add('Preloader3', Preloader3);
+	game.scene.add('MainMenu', MainMenu);
+	game.scene.add('controls', controls);
+	game.scene.add('LevelOne', LevelOne);
+	game.scene.add('clear1', clear1);
+	game.scene.add('LevelTwo', LevelTwo);
+	game.scene.add('LevelThree', LevelThree);
+	game.scene.add('LevelFour', LevelFour);
+	game.scene.add('GameOver', GameOver);
+	game.scene.add('Victory', Victory);
+	game.scene.start('boot3');
+	
 };

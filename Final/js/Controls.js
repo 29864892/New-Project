@@ -1,21 +1,21 @@
-BasicGame.Controls = function (game) {
-
-	
-};
-
-BasicGame.Controls.prototype = {
-
-	create: function () {
-
-		this.add.sprite(0, 0, 'menu');
-		this.add.sprite(250,200, 'controlScreen');
-		this.playButton = this.add.button( 30, 390, 'backButton', this.retMain, this);
-		
-		console.log('Control Screen');
-	},
-	
-	retMain: function (pointer){
-		console.log('return to state');
-		this.state.start('MainMenu');
+//Menu screen to display controls
+class controls extends Phaser.Scene{
+	constructor(){
+		super({key: 'controls',
+		type: Phaser.AUTO,
+		width: 800,
+		height: 600,
+        
+    });
 	}
-};
+	create(){
+		this.add.sprite(400, 300, 'menu');
+		this.add.sprite(400,300, 'controlScreen');
+		this.controlButton = this.add.image(100, 420, 'backButton');
+		this.controlButton.setInteractive();
+		this.controlButton.on('pointerdown', () => this.retMain());
+	}
+	retMain(){
+		this.scene.start('MainMenu');
+	}
+}

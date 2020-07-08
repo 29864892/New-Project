@@ -1,42 +1,66 @@
-"use strict";
 
-BasicGame.MainMenu = function (game) {
+var menuMusic;
+var added = false;
+var started = false;
 
-	this.music = null;
-	this.playButton = null;
-
-};
-
-BasicGame.MainMenu.prototype = {
-
-	create: function () {
-
-		//	We've already preloaded our assets, so let's kick right into the Main Menu itself.
-		//	Here all we're doing is playing some music and adding a picture and button
-		//	Naturally I expect you to do something significantly better :)
-
-		//this.music = this.add.audio('titleMusic');
-		//this.music.play();
-
-		this.add.sprite(0, 0, 'menu');
-		this.playButton = this.add.button( 300, 290, 'playButton', this.startGame, this);
-		this.controlsButton = this.add.button (270, 200, 'controlButton', this.controlState, this);
-		console.log('Main menu');
-	},
-
-	startGame: function (pointer) {
-
-		//	Ok, the Play Button has been clicked or touched, so let's stop the music (otherwise it'll carry on playing)
-		//this.music.stop();
-		console.log('lvl 1 start');
-		//	And start the actual game
-		this.state.start('LevelOne');
+class MainMenu extends Phaser.Scene{
 	
-
-	},
-	
-	controlState: function (pointer){
-		console.log('control state');
-		this.state.start('Controls');
+	constructor(){
+		super({key: 'MainMenu',
+		type: Phaser.AUTO,
+		width: 800,
+		height: 600,
+    });
 	}
-};
+	create(){
+		if(!added){
+			menuMusic = this.sound.add('titleMusic',{volume:0.5, loop:true});
+			added = true;
+		}
+		this.clickSound = this.sound.add('click');
+		if(!menuMusic.isPlaying){
+			menuMusic.play();
+		}
+		menuMusic.setVolume(.35);
+		this.add.image(400, 300, 'menu');
+		//make a button
+		this.playButton = this.add.image(400, 300, 'playButton');
+		this.playButton.setInteractive();
+		this.playButton.on('pointerdown', () => this.startGame());
+		
+		this.controlButton = this.add.image(400, 230, 'controlButton');
+		this.controlButton.setInteractive();
+		this.controlButton.on('pointerdown', () => this.controls());
+		//used for testing other scenes
+		
+		this.testButton = this.add.image(200, 300, 'drone');
+		this.testButton.setInteractive();
+		this.testButton.on('pointerdown', () => this.sceneTest());
+		//
+	}
+	startGame(){
+		if(menuMusic.isPlaying){
+			menuMusic.stop();
+		}
+		this.clickSound.play();
+		if(started){
+			this.scene.restart('LevelOne');
+		}
+		started = true;
+		this.registry.events.off('changedata', undefined, undefined, false);
+		this.registry.destroy();
+		this.events.off();
+		this.scene.start('LevelOne');
+	}
+	controls(){
+		this.clickSound.play();
+		this.scene.start('controls');
+	}
+	
+	sceneTest(){
+		if(menuMusic.isPlaying){
+			menuMusic.stop();
+		}
+		this.scene.start('Victory');
+	}
+}
