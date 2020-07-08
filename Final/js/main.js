@@ -12,10 +12,10 @@ window.onload = function() {
 			}
 		},
 		scene: {
-			boot3: boot3,
+			Boot3: Boot3,
 			Preloader3: Preloader3,
 			MainMenu: MainMenu,
-			controls: controls,
+			Controls: Controls,
 			LevelOne: LevelOne,
 			clear1: clear1,
 			LevelTwo: LevelTwo,
@@ -28,10 +28,10 @@ window.onload = function() {
 	
 	let game = new Phaser.Game(config);
 	
-	game.scene.add('boot3', boot3);
+	game.scene.add('Boot3', Boot3);
 	game.scene.add('Preloader3', Preloader3);
 	game.scene.add('MainMenu', MainMenu);
-	game.scene.add('controls', controls);
+	game.scene.add('Controls', Controls);
 	game.scene.add('LevelOne', LevelOne);
 	game.scene.add('clear1', clear1);
 	game.scene.add('LevelTwo', LevelTwo);
