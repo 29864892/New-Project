@@ -1,7 +1,7 @@
 //Menu screen to display controls
-class controls extends Phaser.Scene{
+class Controls extends Phaser.Scene{
 	constructor(){
-		super({key: 'controls',
+		super({key: 'Controls',
 		type: Phaser.AUTO,
 		width: 800,
 		height: 600,
