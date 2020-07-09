@@ -32,11 +32,11 @@ class MainMenu extends Phaser.Scene{
 		this.controlButton.setInteractive();
 		this.controlButton.on('pointerdown', () => this.controls());
 		//used for testing other scenes
-		
+		/*
 		this.testButton = this.add.image(200, 300, 'drone');
 		this.testButton.setInteractive();
 		this.testButton.on('pointerdown', () => this.sceneTest());
-		//
+		//*/
 	}
 	startGame(){
 		if(menuMusic.isPlaying){
@@ -56,11 +56,11 @@ class MainMenu extends Phaser.Scene{
 		this.clickSound.play();
 		this.scene.start('controls');
 	}
-	
+	/*
 	sceneTest(){
 		if(menuMusic.isPlaying){
 			menuMusic.stop();
 		}
 		this.scene.start('Victory');
-	}
+	}*/
 }

@@ -169,11 +169,12 @@ class LevelTwo extends Phaser.Scene{
 		ally2.body.setAllowGravity(false);
 		ally2.setVelocityX(50);
 		ally2.setVelocityY(50);
-		this.cheats = true;
+		
+		/*this.cheats = true;
 		if(this.cheats){
 			console.log('cheats enabled');
 			enemyHp2 = 1;
-		}
+		}*/
 	}
 	
 	update()

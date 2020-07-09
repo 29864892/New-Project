@@ -7,7 +7,7 @@ var cursor4;//input
 var music4;
 var player4;//player4 object
 var firstmove4 = true;//check for when to start sound
-var lives4 = 1;//player4 lives 0 = gameOver4
+var lives4 = 3;//player4 lives 0 = gameOver4
 var lifeText4;//text displaying lives
 var scoreText4;//text for score4 (# of items picked up)
 var music4;//in game music4
@@ -181,13 +181,13 @@ class LevelFour extends Phaser.Scene{
 		this.physics.add.overlap(officer4, player4, this.hit4, null, this);
 		this.physics.add.overlap(bullet4, player4, this.hit4, null, this);
 		officer4.body.setAllowGravity(false);
-		
+		/*
 		this.cheats = true;
 		if(this.cheats){
 			
 			console.log('cheats enabled');
 			enemy4Hp = 1;
-		}
+		}*/
 	}
 	update(){
 	
