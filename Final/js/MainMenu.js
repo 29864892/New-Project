@@ -54,7 +54,7 @@ class MainMenu extends Phaser.Scene{
 	}
 	controls(){
 		this.clickSound.play();
-		this.scene.start('controls');
+		this.scene.start('Controls');
 	}
 	/*
 	sceneTest(){
