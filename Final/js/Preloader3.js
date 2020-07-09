@@ -20,7 +20,7 @@ class Preloader3 extends Phaser.Scene{
 			this.load.image('controlScreen', 'assets/menus/controlScreen.png');
 			this.load.image('clearScreen', 'assets/menus/clear.png');
 			this.load.image('lossScreen', 'assets/menus/gameOver.png');
-			this.load.image('winScreen', 'assets/menus/Victory.png');
+			this.load.image('winScreen', 'assets/menus/victory.png');
 			this.load.audio('titleMusic', 'assets/menus/Electronic Fantasy.ogg');//https://patrickdearteaga.com/arcade-music/
 			this.load.audio('victory', 'assets/menus/Scott_Holmes_-_04_-_Upbeat_Party.mp3');//https://freemusicarchive.org/music/Scott_Holmes/Inspiring__Upbeat_Music/Scott_Holmes_-_Upbeat_Party
 			this.load.audio('click', 'assets/menus/mouse-click-clicking-single-click-2-www.FesliyanStudios.com.mp3');//https://www.fesliyanstudios.com/sound-effects-search.php?q=single+mouse+click
